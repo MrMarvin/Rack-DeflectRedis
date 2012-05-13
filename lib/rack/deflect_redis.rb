@@ -73,7 +73,7 @@ module Rack
                             :timeout => @options[:redis_timeout],
                             :password => @options[:redis_password]
       #rescue 
-      #  puts "WARNING: Rack::DeflectRedis could not connect to redis! Blocking all requests per default: #{@options[:default_block].to_s}"
+      #  log "WARNING: Rack::DeflectRedis could not connect to redis! Blocking all requests per default: #{@options[:default_block].to_s}"
       # OMG REDIS Y U NO RAISE EXCEPTION!?!?
       #  @redis = nil
       #end
@@ -84,7 +84,7 @@ module Rack
       return deflect! if deflect? env
       status,  headers, body = @app.call env
       # block this remote_addr if app ask us to
-      block!(request.ip) if headers['X-Rack::DeflectRedis'] == "block!"
+      block!(Rack::Request.new(env).ip) if headers['X-Rack::DeflectRedis'] == "block!"
       headers.delete('X-Rack::DeflectRedis')
       [status, headers, body]
     end
@@ -95,7 +95,7 @@ module Rack
 
     def deflect? env
       begin
-        @remote_addr = request.ip
+        @remote_addr = Rack::Request.new(env).ip
         unless @options[:skip_for].include? @remote_addr or not(env['REQUEST_METHOD'] =~ @options[:request_methods])
         
           # increases counter for this remote_add
@@ -114,6 +114,7 @@ module Rack
           end
         end
       rescue 
+        log "WARNING: Rack::DeflectRedis could not connect to redis! Blocking all requests per default: #{@options[:default_block].to_s}"
         return @options[:default_block]
       end
       false
@@ -126,9 +127,13 @@ module Rack
   
 
     def block!(remote_addr)
-      log "force blocking of #{@remote_addr} for #{@options[:block_duration].to_s}"
-      @redis.set(@remote_addr,999999)
-      @redis.expire(@remote_addr, @options[:block_duration])
+      begin
+        @redis.set(@remote_addr,999999)
+        @redis.expire(@remote_addr, @options[:block_duration])
+        log "force blocking of #{@remote_addr} for #{@options[:block_duration].to_s}"
+      rescue
+        log "WARNING: Rack::DeflectRedis could not connect to redis! Blocking all requests per default: #{@options[:default_block].to_s}"
+      end
     end
 
   end

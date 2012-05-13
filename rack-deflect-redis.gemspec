@@ -3,7 +3,7 @@ $:.unshift lib unless $:.include?(lib)
 
 Gem::Specification.new do |s|
   s.name        = "rack-deflect-redis"
-  s.version     = "0.42"
+  s.version     = "0.42.1"
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Marvin Frick"]
   s.email       = ["marv@hostin.is"]

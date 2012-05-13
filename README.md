@@ -38,7 +38,3 @@ Examples:
 use Rack::DeflectRedis, :log => $stdout, :request_threshold => 20, :interval => 5, :block_duration => 60
 ```
 This will deny all requests for 60 secounds after 20 requests were made within 5 secs.
-
-CREDIT:
-===
- Marvin Frick <marv@hostin.is> based on Rack::Deflect by TJ Holowaychuk <tj@vision-media.ca>

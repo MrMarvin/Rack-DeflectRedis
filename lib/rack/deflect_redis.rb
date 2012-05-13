@@ -84,7 +84,7 @@ module Rack
       return deflect! if deflect? env
       status,  headers, body = @app.call env
       # block this remote_addr if app ask us to
-      block!(env['REMOTE_ADDR']) if headers['X-Rack::DeflectRedis'] == "block!"
+      block!(request.ip) if headers['X-Rack::DeflectRedis'] == "block!"
       headers.delete('X-Rack::DeflectRedis')
       [status, headers, body]
     end
@@ -95,7 +95,7 @@ module Rack
 
     def deflect? env
       begin
-        @remote_addr = env['REMOTE_ADDR']
+        @remote_addr = request.ip
         unless @options[:skip_for].include? @remote_addr or not(env['REQUEST_METHOD'] =~ @options[:request_methods])
         
           # increases counter for this remote_add
